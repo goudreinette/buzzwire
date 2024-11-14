@@ -235,6 +235,9 @@ void main() {
   // backgroundMusic.loop();
 
   while (true) {
+    const int buttonsDown = WPAD_ButtonsDown(0);
+    const int buttonsHeld = WPAD_ButtonsHeld(0);
+
     GRRLIB_FillScreen(GRRLIB_MAROON); // Clear the screen with black
     // GRRLIB_Rectangle(100, 300, 50, 100, GRRLIB_MAROON, 1);
 
@@ -258,6 +261,9 @@ void main() {
       showGameWon();
     }
 
+    if(buttonsDown & WPAD_BUTTON_HOME) {
+      break;
+    }
 
     GRRLIB_Render();
   }
