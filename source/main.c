@@ -219,12 +219,19 @@ void playGame() {
   // }
 }
 
+// Colors
 #define GRRLIB_MAROON  0x800000FF
+#define GRRLIB_WHITE   0xFFFFFFFF
 
 
 
 void main() {
   GRRLIB_Init();
+  WPAD_Init();
+  WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
+ 
+  // Infrared
+  ir_t ir1;
   
   // size(600, 400);  // Set window size
   // skeletonImage = loadImage("skeleton.png");  // Load the image
@@ -235,10 +242,23 @@ void main() {
   // backgroundMusic.loop();
 
   while (true) {
+	// Read input
+	WPAD_SetVRes(0, 0, 0);
+	WPAD_ScanPads();
     const int buttonsDown = WPAD_ButtonsDown(0);
     const int buttonsHeld = WPAD_ButtonsHeld(0);
+	WPAD_IR(WPAD_CHAN_0, &ir1);
 
-    GRRLIB_FillScreen(GRRLIB_MAROON); // Clear the screen with black
+	// Cursor
+	int x = ir1.sx - 190;
+	int y = ir1.sy - 210;
+
+	// Clear the screen with black
+    GRRLIB_FillScreen(GRRLIB_MAROON); 
+
+	// Draw cursor
+	GRRLIB_Circle(x, y, 25, GRRLIB_WHITE, false);
+
     // GRRLIB_Rectangle(100, 300, 50, 100, GRRLIB_MAROON, 1);
 
     // If in main menu, show the Start button
