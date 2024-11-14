@@ -1,5 +1,10 @@
 #include <grrlib.h>
 
+#include <ogc/lwp_watchdog.h>   // Needed for gettime and ticks_to_millisecs
+#include <stdlib.h>
+#include <wiiuse/wpad.h>
+#include <fat.h>
+
 
 int stickX = 125;
 int stickY = 300;
@@ -214,10 +219,13 @@ void playGame() {
   // }
 }
 
+#define GRRLIB_MAROON  0x800000FF
 
 
 
 void main() {
+  GRRLIB_Init();
+  
   // size(600, 400);  // Set window size
   // skeletonImage = loadImage("skeleton.png");  // Load the image
   // electrocuteSound = new SoundFile(this, "electrocute.wav");  // Load the electrocute sound
@@ -227,8 +235,9 @@ void main() {
   // backgroundMusic.loop();
 
   while (true) {
-    background(0); // Clear the screen with black
-  
+    GRRLIB_FillScreen(GRRLIB_MAROON); // Clear the screen with black
+    // GRRLIB_Rectangle(100, 300, 50, 100, GRRLIB_MAROON, 1);
+
     // If in main menu, show the Start button
     if (inMainMenu) {
       showMainMenu();
@@ -248,5 +257,11 @@ void main() {
     if (gameWon) {
       showGameWon();
     }
+
+
+    GRRLIB_Render();
   }
+
+  GRRLIB_Exit(); // Be a good boy, clear the memory allocated by GRRLIB
+  return 0;
 }
