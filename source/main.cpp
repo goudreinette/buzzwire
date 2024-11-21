@@ -5,6 +5,7 @@
 #include <math.h>
 
 #include "BMfont2_png.h"
+#include "BMfont4_png.h"
 
 
 // Colors
@@ -126,7 +127,7 @@ void showMainMenu()
 	const char *menuText = "MAIN MENU";
 	int textX = 640 / 2; // Breedte van het scherm / 2
 	int textY = 100;	 // Y-positie van de tekst
-	GRRLIB_Printf(textX - (strlen(menuText) * 8), textY, fontTexture, GRRLIB_WHITE, 1, "%s", menuText);
+	GRRLIB_Printf(textX - (strlen(menuText) * 16), textY, fontTexture, GRRLIB_WHITE, 2, "%s", menuText);
 
 	// // Start Button
 	// fill(0, 255, 0);
@@ -135,7 +136,7 @@ void showMainMenu()
 	// textSize(24);
 	// text("Start", width / 2, height / 2);
 	GRRLIB_Rectangle(640 / 2 - 75, 480 / 2 - 25, 150, 50, GRRLIB_LIME, true);
-	// GRRLIB_Printf(640 / 2 - 28, 480 / 2 - 12, fontTexture, GRRLIB_BLACK, 1, "Start");
+	GRRLIB_Printf(640 / 2 - 36, 480 / 2 - 6, fontTexture, GRRLIB_BLACK, 1, "START");
 
 	// // Detect button click for Start
 	// if (mousePressed && mouseX >= width / 2 - 75 && mouseX <= width / 2 + 75 && mouseY >= height / 2 - 25 && mouseY <= height / 2 + 25) {
@@ -259,7 +260,7 @@ int main()
 	WPAD_Init();
 	WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
 
-	fontTexture = GRRLIB_LoadTexture(BMfont2_png);
+	fontTexture = GRRLIB_LoadTexture(BMfont4_png);
 	GRRLIB_InitTileSet(fontTexture, 16, 16, 32);
 
 	// size(600, 400);  // Set window size
