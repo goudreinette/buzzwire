@@ -5,6 +5,7 @@
 #include <math.h>
 #include <asndlib.h>
 #include <mp3player.h>
+#include <vector>
 
 // Font
 #include "BMfont2_png.h"
@@ -52,6 +53,11 @@ struct Rect
 	int x, y, width, height;
 };
 
+struct Point
+{
+	int x, y;
+};
+
 // Game logic, adapted from processing
 int stickX = 125;
 int stickY = 300;
@@ -72,6 +78,12 @@ int path[PATH_COUNT][4] = {
 	{125, 100, 525, 100},
 	{525, 100, 525, 300}
 };
+
+
+
+// std::vector<>
+
+
 
 bool pointInRectangle(int px, int py, int x1, int y1, int x2, int y2)
 {
@@ -218,7 +230,9 @@ void showGameOver()
 	int textY = 100;	 // Y-positie van de tekst
 	GRRLIB_Printf(textX - (strlen(menuText) * 16), textY, fontTexture, GRRLIB_RED, 2, "%s", menuText);
 
+
 	// Restart Button
+	// TODO remove duplicate code
 	Rect restartButtonRect = Rect {
 		.x = width / 2 - 75,
 		.y = height / 2 + 25,
@@ -239,24 +253,36 @@ void showGameOver()
 	}
 }
 
+
+
+
 void showGameWon()
 {
-	// fill(0, 255, 0);
-	// textSize(32);
-	// textAlign(CENTER, CENTER);
-	// text("You Won!", width / 2, height / 2 - 50);
+	const char *menuText = "YOU WON!";
+	int textX = 640 / 2; // Breedte van het scherm / 2
+	int textY = 100;	 // Y-positie van de tekst
+	GRRLIB_Printf(textX - (strlen(menuText) * 16), textY, fontTexture, GRRLIB_LIME, 2, "%s", menuText);
+	
 
-	// // Restart Button
-	// fill(255, 165, 0);
-	// rect(width / 2 - 75, height / 2 + 25, 150, 50);
-	// fill(0);
-	// textSize(24);
-	// text("Restart", width / 2, height / 2 + 50);
+	// Restart Button: 
+	// TODO remove duplicate code
+	Rect restartButtonRect = Rect {
+		.x = width / 2 - 75,
+		.y = height / 2 + 25,
+		.width = 150,
+		.height = 50
+	};
 
-	// // Detect button click for Restart
-	// if (mousePressed && mouseX >= width / 2 - 75 && mouseX <= width / 2 + 75 && mouseY >= height / 2 + 25 && mouseY <= height / 2 + 75) {
-	//   resetGame();
-	// }
+	bool hoveringRestartButton = GRRLIB_PtInRect(restartButtonRect.x, restartButtonRect.y, restartButtonRect.width, restartButtonRect.height, mouseX, mouseY);
+	int restartButtonColor = hoveringRestartButton ? GRRLIB_WHITE : GRRLIB_ORANGE;
+	int restartTextColor = hoveringRestartButton ? GRRLIB_BLACK : GRRLIB_BLACK;
+	GRRLIB_Rectangle(restartButtonRect.x, restartButtonRect.y, restartButtonRect.width, restartButtonRect.height, restartButtonColor, true);
+	GRRLIB_Printf(width / 2 - 55, height / 2 + 45, fontTexture, restartTextColor, 1, "RESTART");
+
+	// Detect button click for Restart
+	if (mousePressed && hoveringRestartButton) {
+	  	resetGame();
+	}
 }
 
 void playGame()
