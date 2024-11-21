@@ -1,4 +1,5 @@
 #include <grrlib.h>
+#include <stdio.h> 
 #include <ogc/lwp_watchdog.h> // Needed for gettime and ticks_to_millisecs
 #include <stdlib.h>
 #include <wiiuse/wpad.h>
@@ -64,12 +65,13 @@ int stickY = 300;
 bool stickPickedUp = false;
 bool buzzed = false;
 bool shiftPressed = false;		// Flag to check if Shift is pressed
-bool gameOver = true;			// Flag to check if game is over
+bool gameOver = false;			// Flag to check if game is over
 bool gameStarted = false;		// Flag to check if the game has started
 bool inMainMenu = true;			// Flag to check if in main menu
 bool gameWon = false;			// Flag to check if game is won
 bool electrocutePlayed = false; // Flag to check if electrocute sound has been played
 bool chillPlayed = false;       // Flag to check if soundtrack has been started
+int rumbleTimer = 0; 			// Rumble for one second when you lose
 
 // The path!!!
 const int PATH_COUNT = 3;
@@ -167,6 +169,7 @@ void resetGame()
 	buzzed = false;
 	electrocutePlayed = false; // Reset electrocutePlayed flag
 	chillPlayed = false;
+	rumbleTimer = 60;
 }
 
 void showMainMenu()
@@ -198,6 +201,10 @@ void showMainMenu()
 	int startTextColor = hoveringStartButton ? GRRLIB_BLACK : GRRLIB_BLACK;
 	GRRLIB_Rectangle(startButtonRect.x, startButtonRect.y, startButtonRect.width, startButtonRect.height, startButtonColor, true);
 	GRRLIB_Printf(width / 2 - 36, height / 2 - 6, fontTexture, startTextColor, 1, "START");
+	
+	if (hoveringStartButton) {
+		rumbleTimer = 1;
+	}
 
 	// Detect button click for Start
 	if (mousePressed && hoveringStartButton) {
@@ -323,9 +330,10 @@ void playGame()
 	  checkGameOver();  // Only check game over if the game hasn't been won yet
 	}
 
-	// Display game over message if off path
+	// Display game over message if off path, and rumble
 	if (gameOver) {
-	  gameStarted = false;
+		rumbleTimer = 60;
+	  	gameStarted = false;
 	}
 }
 
@@ -355,6 +363,16 @@ int main()
 		buttonsDown = WPAD_ButtonsDown(0);
 		buttonsHeld = WPAD_ButtonsHeld(0);
 		WPAD_IR(WPAD_CHAN_0, &ir1);
+
+		// Rumble!
+		// printf("rumbleTimer: %i", rumbleTimer);
+		SYS_Report("rumbleTimer: %i\r", rumbleTimer);
+		if (rumbleTimer > 0) {
+			WPAD_Rumble(0, 1);
+			rumbleTimer--;
+		} else {
+			WPAD_Rumble(0, 0);
+		}
 
 		// Cursor and mousePressed
 		mouseX = ir1.sx - 190;
