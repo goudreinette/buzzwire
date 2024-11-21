@@ -63,6 +63,7 @@ bool gameStarted = false;		// Flag to check if the game has started
 bool inMainMenu = true;			// Flag to check if in main menu
 bool gameWon = false;			// Flag to check if game is won
 bool electrocutePlayed = false; // Flag to check if electrocute sound has been played
+bool chillPlayed = false;       // Flag to check if soundtrack has been started
 
 // The path!!!
 const int PATH_COUNT = 3;
@@ -153,10 +154,18 @@ void resetGame()
 	stickPickedUp = false;
 	buzzed = false;
 	electrocutePlayed = false; // Reset electrocutePlayed flag
+	chillPlayed = false;
 }
 
 void showMainMenu()
 {
+	if (!chillPlayed) {
+		// Start playing background music.
+		// TODO: figure out if it loops
+		MP3Player_PlayBuffer(chill_mp3, chill_mp3_size, NULL);
+		chillPlayed = true;
+	}
+
 	GRRLIB_FillScreen(GRRLIB_BLACK);
 
 	const char *menuText = "MAIN MENU";
@@ -184,24 +193,24 @@ void showMainMenu()
 		gameStarted = true;
 		gameOver = false;
 		gameWon = false;
-		electrocutePlayed = false; // Reset electrocutePlayed flag when starting a new game
+		electrocutePlayed = false; // Reset electrocutePlayed and chillPlayed flags when starting a new game
 	}
 }
 
 void showGameOver()
 {
 	// Play the electrocute sound only once if the game is over
-	// if (!electrocutePlayed) {
-	//   electrocuteSound.play();
+	if (!electrocutePlayed) {
+		MP3Player_Stop();
+		MP3Player_Volume(500);
+		MP3Player_PlayBuffer(electrocute_mp3, electrocute_mp3_size, NULL);
 	  	electrocutePlayed = true;  // Mark electrocute sound as played
-	// }
+	}
 
 	// Scale the skeleton image to 70%
 	float scaleFactor = 0.6;
 	// Skeleton, draw scaled in the center, with transparency 
 	GRRLIB_DrawImg(80, 50, skeleton_img, 0, scaleFactor, scaleFactor, GRRLIB_TRANSPARENT_WHITE);  // Draw a jpeg
-
-        
 
 	// Game Over text
 	const char *menuText = "GAME OVER";
@@ -225,7 +234,8 @@ void showGameOver()
 
 	// Detect button click for Restart
 	if (mousePressed && hoveringRestartButton) {
-	  resetGame();
+	  	resetGame();
+		MP3Player_Stop();
 	}
 }
 
@@ -310,9 +320,6 @@ int main()
 	// Initialize MP3 player and load sounds
 	ASND_Init();
 	MP3Player_Init();
-
-	// Start playing background music in a loop
-	MP3Player_PlayBuffer(chill_mp3, chill_mp3_size, NULL);
 
 	while (true)
 	{
