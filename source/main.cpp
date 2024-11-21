@@ -3,11 +3,19 @@
 #include <stdlib.h>
 #include <wiiuse/wpad.h>
 #include <math.h>
+#include <asndlib.h>
+#include <mp3player.h>
 
+// Font
 #include "BMfont2_png.h"
 #include "BMfont4_png.h"
 
+// Images
 #include "skeleton_jpg.h"
+
+// Sounds
+#include "chill_mp3.h"
+#include "electrocute_mp3.h"
 
 // Size of the sketch (fix for processing code)
 int width = 640;
@@ -201,7 +209,6 @@ void showGameOver()
 	int textY = 100;	 // Y-positie van de tekst
 	GRRLIB_Printf(textX - (strlen(menuText) * 16), textY, fontTexture, GRRLIB_RED, 2, "%s", menuText);
 
-
 	// Restart Button
 	Rect restartButtonRect = Rect {
 		.x = width / 2 - 75,
@@ -293,18 +300,19 @@ int main()
 	WPAD_Init();
 	WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
 
+	// Load font
 	fontTexture = GRRLIB_LoadTexture(BMfont4_png);
 	GRRLIB_InitTileSet(fontTexture, 16, 16, 32);
 
+	// Load image
 	skeleton_img = GRRLIB_LoadTexture(skeleton_jpg);
 
-	// size(600, 400);  // Set window size
-	// skeletonImage = loadImage("skeleton.png");  // Load the image
-	// electrocuteSound = new SoundFile(this, "electrocute.wav");  // Load the electrocute sound
-	// backgroundMusic = new SoundFile(this, "Chill.wav");  // Load the background music
+	// Initialize MP3 player and load sounds
+	ASND_Init();
+	MP3Player_Init();
 
-	// // Start playing background music in a loop
-	// backgroundMusic.loop();
+	// Start playing background music in a loop
+	MP3Player_PlayBuffer(chill_mp3, chill_mp3_size, NULL);
 
 	while (true)
 	{
