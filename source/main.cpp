@@ -7,8 +7,10 @@
 #include "BMfont2_png.h"
 #include "BMfont4_png.h"
 
+// Size of the sketch (fix for processing code)
+int width = 640;
 
-// Colors
+// Colors (hex + transparency)
 #define GRRLIB_MAROON 0x800000FF
 #define GRRLIB_WHITE 0xFFFFFFFF
 #define GRRLIB_BLACK 0x000000FF
@@ -19,9 +21,17 @@ GRRLIB_texImg *fontTexture;
 
 // WiiMote
 ir_t ir1; // infrared
+int buttonsDown;
+int buttonsHeld;
 int mouseX;
 int mouseY;
 bool mousePressed;
+
+// Shapes
+struct Rect
+{
+	int x, y, width, height;
+};
 
 // Game logic, adapted from processing
 int stickX = 125;
@@ -35,12 +45,16 @@ bool inMainMenu = true;			// Flag to check if in main menu
 bool gameWon = false;			// Flag to check if game is won
 bool electrocutePlayed = false; // Flag to check if electrocute sound has been played
 
-
+// The path!!!
 int path[3][4] = {
 	{125, 300, 125, 100},
 	{125, 100, 525, 100},
-	{525, 100, 525, 300}
-};
+	{525, 100, 525, 300}};
+
+bool pointInRectangle(int px, int py, int x1, int y1, int x2, int y2)
+{
+	return (px > x1 && px < x2 && py > y1 && py < y2);
+}
 
 float distanceToLine(int px, int py, int x1, int y1, int x2, int y2)
 {
@@ -118,34 +132,35 @@ void resetGame()
 
 void showMainMenu()
 {
-	// fill(255);
 	GRRLIB_FillScreen(GRRLIB_BLACK);
-	// textSize(32);
-	// textAlign(CENTER, CENTER);
-	// text("Main Menu", width / 2, 100);
 
 	const char *menuText = "MAIN MENU";
 	int textX = 640 / 2; // Breedte van het scherm / 2
 	int textY = 100;	 // Y-positie van de tekst
 	GRRLIB_Printf(textX - (strlen(menuText) * 16), textY, fontTexture, GRRLIB_WHITE, 2, "%s", menuText);
 
-	// // Start Button
-	// fill(0, 255, 0);
-	// rect(width / 2 - 75, height / 2 - 25, 150, 50);
-	// fill(0);
-	// textSize(24);
-	// text("Start", width / 2, height / 2);
-	GRRLIB_Rectangle(640 / 2 - 75, 480 / 2 - 25, 150, 50, GRRLIB_LIME, true);
-	GRRLIB_Printf(640 / 2 - 36, 480 / 2 - 6, fontTexture, GRRLIB_BLACK, 1, "START");
+	// Start Button
+	Rect startButtonRect = Rect {
+		.x = 640 / 2 - 75,
+		.y = 480 / 2 - 25,
+		.width = 150,
+		.height = 50
+	};
 
-	// // Detect button click for Start
-	// if (mousePressed && mouseX >= width / 2 - 75 && mouseX <= width / 2 + 75 && mouseY >= height / 2 - 25 && mouseY <= height / 2 + 25) {
-	//   inMainMenu = false;
-	//   gameStarted = true;
-	//   gameOver = false;
-	//   gameWon = false;
-	//   electrocutePlayed = false;  // Reset electrocutePlayed flag when starting a new game
-	// }
+	bool hoveringStartButton = GRRLIB_PtInRect(startButtonRect.x, startButtonRect.y, startButtonRect.width, startButtonRect.height, mouseX, mouseY);
+	int startButtonColor = hoveringStartButton ? GRRLIB_WHITE : GRRLIB_LIME;
+	int startTextColor = hoveringStartButton ? GRRLIB_BLACK : GRRLIB_BLACK;
+	GRRLIB_Rectangle(startButtonRect.x, startButtonRect.y, startButtonRect.width, startButtonRect.height, startButtonColor, true);
+	GRRLIB_Printf(640 / 2 - 36, 480 / 2 - 6, fontTexture, startTextColor, 1, "START");
+
+	// Detect button click for Start
+	if (mousePressed && hoveringStartButton) {
+		inMainMenu = false;
+		gameStarted = true;
+		gameOver = false;
+		gameWon = false;
+		electrocutePlayed = false; // Reset electrocutePlayed flag when starting a new game
+	}
 }
 
 void showGameOver()
@@ -271,19 +286,19 @@ int main()
 	// // Start playing background music in a loop
 	// backgroundMusic.loop();
 
-
 	while (true)
 	{
 		// Read input
 		WPAD_SetVRes(0, 0, 0);
 		WPAD_ScanPads();
-		const int buttonsDown = WPAD_ButtonsDown(0);
-		const int buttonsHeld = WPAD_ButtonsHeld(0);
+		buttonsDown = WPAD_ButtonsDown(0);
+		buttonsHeld = WPAD_ButtonsHeld(0);
 		WPAD_IR(WPAD_CHAN_0, &ir1);
 
-		// Cursor
+		// Cursor and mousePressed
 		mouseX = ir1.sx - 190;
 		mouseY = ir1.sy - 210;
+		mousePressed = buttonsHeld & WPAD_BUTTON_A;
 
 		// Clear the screen with black
 		GRRLIB_FillScreen(GRRLIB_MAROON);
