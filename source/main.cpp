@@ -20,6 +20,10 @@
 #include "chill_mp3.h"
 #include "electrocute_mp3.h"
 
+
+// Random
+using Random = effolkronium::random_static;
+
 // Size of the sketch (fix for processing code)
 int width;
 int height;
@@ -57,12 +61,10 @@ struct Rect
 	int x, y, width, height;
 };
 
-
 struct PathLine
 {
 	int x1, y1, x2, y2;
 };
-
 
 
 // Game logic, adapted from processing
@@ -80,22 +82,10 @@ bool chillPlayed = false;       // Flag to check if soundtrack has been started
 int rumbleTimer = 0; 			// Rumble for one second when you lose
 
 
-// Random
-using Random = effolkronium::random_static;
-
-// The path!!!
-std::vector<PathLine> pathLines;
-
-int startX = 125, startY = 300; 
-int endX = 525, endY = 300;
-
-
 // math helpers -------------------------------------
 int constrain(int val, int min, int max) {
 	return std::max(std::min(val, max), min);
 }
-
-
 
 bool pointInRectangle(int px, int py, int x1, int y1, int x2, int y2)
 {
@@ -143,7 +133,11 @@ float distanceToLine(int px, int py, int x1, int y1, int x2, int y2)
 }
 
 
-// the path -------------------------------------
+// the path!! -------------------------------------
+std::vector<PathLine> pathLines;
+
+int startX = 125, startY = 300; 
+int endX = 525, endY = 300;
 
 std::vector<PathLine> generateRandomPath() 
 {
@@ -167,7 +161,7 @@ std::vector<PathLine> generateRandomPath()
 		x = constrain(x, startX + 10, endX - 10);  // Constrain to avoid points on edges
 		y = constrain(y, 0, height);  // Constrain Y to canvas height
 		
-		PathLine newPoint = PathLine { .x1 = prevX, .y1 = prevY, .x2 = x, .y2 = y};
+		PathLine newPoint = PathLine { .x1 = prevX, .y1 = prevY, .x2 = x, .y2 = y };
 		points.push_back(newPoint);
 		
 		prevX = x;  // Update the previous x for the next iteration
@@ -303,7 +297,7 @@ void showGameOver()
 	  	electrocutePlayed = true;  // Mark electrocute sound as played
 	}
 
-	// Scale the skeleton image to 70%
+	// Scale the skeleton image to 60%
 	float scaleFactor = 0.6;
 	// Skeleton, draw scaled in the center, with transparency 
 	GRRLIB_DrawImg(80, 50, skeleton_img, 0, scaleFactor, scaleFactor, TRANSPARENT_WHITE);  // Draw a jpeg
@@ -398,7 +392,7 @@ int main()
 	while (true)
 	{
 		// Read input
-		WPAD_SetVRes(0, 0, 0);
+		WPAD_SetVRes(0, width, height);
 		WPAD_ScanPads();
 		buttonsDown = WPAD_ButtonsDown(0);
 		buttonsHeld = WPAD_ButtonsHeld(0);
