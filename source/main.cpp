@@ -92,8 +92,8 @@ int path[PATH_COUNT][4] = {
 
 std::vector<PathLine> pathLines;
 
-int startX = 125, startY = 100;
-int endX = 525, endY = 100;
+int startX = 125, startY = 300; 
+int endX = 525, endY = 300;
 
 
 // math helpers -------------------------------------
@@ -167,7 +167,7 @@ std::vector<PathLine> generateRandomPath()
 	// Generate points with equal distance between them
 	for (int i = 0; i < numPoints; i++) {
 		int x = prevX + segmentWidth;  // Calculate the next X position, evenly spaced
-		int y = Random::get(150, 250);  // Randomize Y position between 150 and 250
+		int y = Random::get(50, 300);  // Randomize Y position between 150 and 250
 		
 		// Ensure the points are spaced out evenly
 		x = constrain(x, startX + 10, endX - 10);  // Constrain to avoid points on edges
@@ -180,10 +180,13 @@ std::vector<PathLine> generateRandomPath()
 		prevY = y;
 	}
 
+	PathLine endPoint = PathLine { .x1 = prevX, .y1 = prevY, .x2 = endX, .y2 = endY};
+	points.push_back(endPoint);
+
 	return points;
 }
 
-void drawPathPoints() {
+void drawPath() {
 	for (PathLine p : pathLines) {
 		GRRLIB_Line(p.x1, p.y1, p.x2, p.y2, GRRLIB_SILVER);
 	}
@@ -238,7 +241,7 @@ void showMainMenu()
 		chillPlayed = true;
 	}
 
-	drawPathPoints();
+	drawPath();
 
 
 	const char *menuText = "MAIN MENU";
@@ -355,9 +358,12 @@ void showGameWon()
 
 void playGame()
 {
+	// Draw path
 	for (int i = 0; i < PATH_COUNT; i++) {
 		GRRLIB_Line(path[i][0], path[i][1], path[i][2], path[i][3], GRRLIB_SILVER);
 	}
+
+	drawPath();
 	
 	// Green start block
 	GRRLIB_Rectangle(100, 300, 50, 100, GRRLIB_LIME, true);
