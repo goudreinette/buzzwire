@@ -20,8 +20,8 @@
 #include "electrocute_mp3.h"
 
 // Size of the sketch (fix for processing code)
-int width = 640;
-int height = 480;
+int width;
+int height;
 
 // Colors (hex + transparency)
 #define GRRLIB_MAROON 0x800000FF
@@ -54,10 +54,13 @@ struct Rect
 	int x, y, width, height;
 };
 
-struct Point
+
+struct PathLine
 {
-	int x, y;
+	int x1, y1, x2, y2;
 };
+
+
 
 // Game logic, adapted from processing
 int stickX = 125;
@@ -82,9 +85,54 @@ int path[PATH_COUNT][4] = {
 };
 
 
+std::vector<PathLine> pathLines;
 
-// std::vector<>
+int startX = 125, startY = 100;
+int endX = 525, endY = 100;
 
+
+
+int constrain(int val, int min, int max) {
+	return std::max(std::min(val, max), min);
+}
+
+std::vector<PathLine> generateRandomPath() 
+{
+	auto points = std::vector<PathLine>();
+	
+	// Number of points you want between start and end
+	int numPoints = 6;
+	
+	// Calculate equal spacing between startX and endX
+	int segmentWidth = (endX - startX) / (numPoints + 1);  // Total space divided by number of points
+	
+	int prevX = startX;
+	int prevY = startY;
+
+	// Generate points with equal distance between them
+	for (int i = 0; i < numPoints; i++) {
+		int x = prevX + segmentWidth;  // Calculate the next X position, evenly spaced
+		int y = 150 + random() % 100;  // Randomize Y position between 150 and 250
+		
+		// Ensure the points are spaced out evenly
+		x = constrain(x, startX + 10, endX - 10);  // Constrain to avoid points on edges
+		y = constrain(y, 0, height);  // Constrain Y to canvas height
+		
+		PathLine newPoint = PathLine { .x1 = prevX, .y1 = prevY, .x2 = x, .y2 = y};
+		points.push_back(newPoint);
+		
+		prevX = x;  // Update the previous x for the next iteration
+		prevY = y;
+	}
+
+	return points;
+}
+
+void drawPathPoints() {
+	for (PathLine p : pathLines) {
+		GRRLIB_Line(p.x1, p.y1, p.x2, p.y2, GRRLIB_SILVER);
+	}
+}
 
 
 bool pointInRectangle(int px, int py, int x1, int y1, int x2, int y2)
@@ -169,7 +217,7 @@ void resetGame()
 	buzzed = false;
 	electrocutePlayed = false; // Reset electrocutePlayed flag
 	chillPlayed = false;
-	rumbleTimer = 60;
+	rumbleTimer = 0;
 }
 
 void showMainMenu()
@@ -181,7 +229,8 @@ void showMainMenu()
 		chillPlayed = true;
 	}
 
-	GRRLIB_FillScreen(GRRLIB_BLACK);
+	drawPathPoints();
+
 
 	const char *menuText = "MAIN MENU";
 	int textX = 640 / 2; // Breedte van het scherm / 2
@@ -208,6 +257,9 @@ void showMainMenu()
 
 	// Detect button click for Start
 	if (mousePressed && hoveringStartButton) {
+		// Generate a path!
+		pathLines = generateRandomPath();
+
 		inMainMenu = false;
 		gameStarted = true;
 		gameOver = false;
@@ -294,13 +346,13 @@ void showGameWon()
 
 void playGame()
 {
-	for (int i = 0; i < PATH_COUNT; i++)
-	{
+	for (int i = 0; i < PATH_COUNT; i++) {
 		GRRLIB_Line(path[i][0], path[i][1], path[i][2], path[i][3], GRRLIB_SILVER);
 	}
 	
 	// Green start block
 	GRRLIB_Rectangle(100, 300, 50, 100, GRRLIB_LIME, true);
+
 	// Blue end block
 	GRRLIB_Rectangle(500, 300, 50, 100, GRRLIB_BLUE, true);
 
@@ -311,7 +363,6 @@ void playGame()
 	}
 
 	// The circle buzzer
-	// Transparency for the circle
 	GRRLIB_Circle(stickX, stickY, 25, GRRLIB_TRANSPARENT_WHITE, true);
 
 	// Check if the stick is picked up
@@ -344,6 +395,10 @@ int main()
 	WPAD_Init();
 	WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
 
+	// Set width and height
+	width = rmode->viWidth;
+	height = rmode->viHeight;
+
 	// Load font
 	fontTexture = GRRLIB_LoadTexture(BMfont4_png);
 	GRRLIB_InitTileSet(fontTexture, 16, 16, 32);
@@ -354,6 +409,11 @@ int main()
 	// Initialize MP3 player and load sounds
 	ASND_Init();
 	MP3Player_Init();
+
+	// Path
+	pathLines = generateRandomPath();
+	SYS_Report("points: %i\r", pathLines.size());
+
 
 	while (true)
 	{
@@ -366,7 +426,7 @@ int main()
 
 		// Rumble!
 		// printf("rumbleTimer: %i", rumbleTimer);
-		SYS_Report("rumbleTimer: %i\r", rumbleTimer);
+		// SYS_Report("rumbleTimer: %i\r", rumbleTimer);
 		if (rumbleTimer > 0) {
 			WPAD_Rumble(0, 1);
 			rumbleTimer--;

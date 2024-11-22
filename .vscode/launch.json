@@ -1,0 +1,29 @@
+{
+    "configurations": [
+        {
+            "name": "(gdb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "targetArchitecture": "ppc",
+            "program": "${workspaceFolder}/buzzwire.elf",
+            "args": ["-enable-pretty-printing"],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerServerAddress": "localhost:2345",
+            "osx": {
+                "miDebuggerPath": "/opt/devkitpro/devkitPPC/bin/powerpc-eabi-gdb",
+                "setupCommands": [
+                    {
+                        "text": "shell open -a mGBA --args -g \"${workspaceFolder}/buzzwire.elf\""
+                    }
+                ]
+            }
+        }
+    ]
+}
+
+
+
