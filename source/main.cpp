@@ -82,14 +82,6 @@ int rumbleTimer = 0; 			// Rumble for one second when you lose
 using Random = effolkronium::random_static;
 
 // The path!!!
-const int PATH_COUNT = 3;
-int path[PATH_COUNT][4] = {
-	{125, 300, 125, 100},
-	{125, 100, 525, 100},
-	{525, 100, 525, 300}
-};
-
-
 std::vector<PathLine> pathLines;
 
 int startX = 125, startY = 300; 
@@ -196,13 +188,12 @@ void drawPath() {
 
 bool isOnPath(int x, int y)
 {
-	for (int i = 0; i < 3; i++)
-	{
-		if (distanceToLine(x, y, path[i][0], path[i][1], path[i][2], path[i][3]) < 25.0)
-		{
+	for (PathLine p : pathLines) {
+		if (distanceToLine(x, y, p.x1, p.y1, p.x2, p.y2) < 25.0) {
 			return true;
 		}
 	}
+
 	return false;
 }
 
@@ -241,9 +232,6 @@ void showMainMenu()
 		chillPlayed = true;
 	}
 
-	drawPath();
-
-
 	const char *menuText = "MAIN MENU";
 	int textX = width / 2; // Breedte van het scherm / 2
 	int textY = 100;	 // Y-positie van de tekst
@@ -271,6 +259,7 @@ void showMainMenu()
 	if (mousePressed && hoveringStartButton) {
 		// Generate a path!
 		pathLines = generateRandomPath();
+		SYS_Report("points: %i\r", pathLines.size()); // Log to check if generation went ok
 
 		inMainMenu = false;
 		gameStarted = true;
@@ -359,10 +348,6 @@ void showGameWon()
 void playGame()
 {
 	// Draw path
-	for (int i = 0; i < PATH_COUNT; i++) {
-		GRRLIB_Line(path[i][0], path[i][1], path[i][2], path[i][3], GRRLIB_SILVER);
-	}
-
 	drawPath();
 	
 	// Green start block
@@ -371,7 +356,7 @@ void playGame()
 	// Blue end block
 	GRRLIB_Rectangle(500, 300, 50, 100, GRRLIB_BLUE, true);
 
-	// Draw stick if picked up
+	// Move stick if picked up
 	if (stickPickedUp && shiftPressed && !gameOver) {
 	  stickX = mouseX;
 	  stickY = mouseY;
@@ -424,11 +409,6 @@ int main()
 	// Initialize MP3 player and load sounds
 	ASND_Init();
 	MP3Player_Init();
-
-	// Path
-	pathLines = generateRandomPath();
-	SYS_Report("points: %i\r", pathLines.size());
-
 
 	while (true)
 	{
