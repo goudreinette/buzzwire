@@ -25,15 +25,17 @@ int width;
 int height;
 
 // Colors (hex + transparency)
-#define GRRLIB_MAROON 0x800000FF
-#define GRRLIB_WHITE 0xFFFFFFFF
-#define GRRLIB_TRANSPARENT_WHITE 0xFFFFFFDD
-#define GRRLIB_BLACK 0x000000FF
-#define GRRLIB_LIME 0x00FF00FF
-#define GRRLIB_ORANGE 0xFFA000FF
-#define GRRLIB_RED 0xFF0000FF
-#define GRRLIB_BLUE 0x0000FFFF
-#define GRRLIB_SILVER  0xC0C0C0FF
+enum Colors {
+	MAROON = 0x800000FF,
+	WHITE = 0xFFFFFFFF,
+	TRANSPARENT_WHITE = 0xFFFFFFDD,
+	BLACK = 0x000000FF,
+	LIME = 0x00FF00FF,
+	ORANGE = 0xFFA000FF,
+	RED = 0xFF0000FF,
+	BLUE = 0x0000FFFF,
+	SILVER = 0xC0C0C0FF
+};
 
 // Font
 GRRLIB_texImg *fontTexture;
@@ -180,7 +182,7 @@ std::vector<PathLine> generateRandomPath()
 
 void drawPath() {
 	for (PathLine p : pathLines) {
-		GRRLIB_Line(p.x1, p.y1, p.x2, p.y2, GRRLIB_SILVER);
+		GRRLIB_Line(p.x1, p.y1, p.x2, p.y2, SILVER);
 	}
 }
 
@@ -235,7 +237,7 @@ void showMainMenu()
 	const char *menuText = "MAIN MENU";
 	int textX = width / 2; // Breedte van het scherm / 2
 	int textY = 100;	 // Y-positie van de tekst
-	GRRLIB_Printf(textX - (strlen(menuText) * 16), textY, fontTexture, GRRLIB_WHITE, 2, "%s", menuText);
+	GRRLIB_Printf(textX - (strlen(menuText) * 16), textY, fontTexture, WHITE, 2, "%s", menuText);
 
 	// Start Button
 	Rect startButtonRect = Rect {
@@ -246,8 +248,8 @@ void showMainMenu()
 	};
 
 	bool hoveringStartButton = GRRLIB_PtInRect(startButtonRect.x, startButtonRect.y, startButtonRect.width, startButtonRect.height, mouseX, mouseY);
-	int startButtonColor = hoveringStartButton ? GRRLIB_WHITE : GRRLIB_LIME;
-	int startTextColor = hoveringStartButton ? GRRLIB_BLACK : GRRLIB_BLACK;
+	int startButtonColor = hoveringStartButton ? WHITE : LIME;
+	int startTextColor = BLACK;
 	GRRLIB_Rectangle(startButtonRect.x, startButtonRect.y, startButtonRect.width, startButtonRect.height, startButtonColor, true);
 	GRRLIB_Printf(width / 2 - 36, height / 2 - 6, fontTexture, startTextColor, 1, "START");
 	
@@ -269,6 +271,28 @@ void showMainMenu()
 	}
 }
 
+
+void showAndCheckRestartButton() 
+{
+	Rect restartButtonRect = Rect {
+		.x = width / 2 - 75,
+		.y = height / 2 + 25,
+		.width = 150,
+		.height = 50
+	};
+
+	bool hoveringRestartButton = GRRLIB_PtInRect(restartButtonRect.x, restartButtonRect.y, restartButtonRect.width, restartButtonRect.height, mouseX, mouseY);
+	int restartButtonColor = hoveringRestartButton ? WHITE : ORANGE;
+	int restartTextColor = BLACK;
+	GRRLIB_Rectangle(restartButtonRect.x, restartButtonRect.y, restartButtonRect.width, restartButtonRect.height, restartButtonColor, true);
+	GRRLIB_Printf(width / 2 - 55, height / 2 + 45, fontTexture, restartTextColor, 1, "RESTART");
+
+	// Detect button click for Restart
+	if (mousePressed && hoveringRestartButton) {
+	  	resetGame();
+	}
+}
+
 void showGameOver()
 {
 	// Play the electrocute sound only once if the game is over
@@ -282,35 +306,15 @@ void showGameOver()
 	// Scale the skeleton image to 70%
 	float scaleFactor = 0.6;
 	// Skeleton, draw scaled in the center, with transparency 
-	GRRLIB_DrawImg(80, 50, skeleton_img, 0, scaleFactor, scaleFactor, GRRLIB_TRANSPARENT_WHITE);  // Draw a jpeg
+	GRRLIB_DrawImg(80, 50, skeleton_img, 0, scaleFactor, scaleFactor, TRANSPARENT_WHITE);  // Draw a jpeg
 
 	// Game Over text
 	const char *menuText = "GAME OVER";
 	int textX = width / 2; // Breedte van het scherm / 2
 	int textY = 100;	 // Y-positie van de tekst
-	GRRLIB_Printf(textX - (strlen(menuText) * 16), textY, fontTexture, GRRLIB_RED, 2, "%s", menuText);
+	GRRLIB_Printf(textX - (strlen(menuText) * 16), textY, fontTexture, RED, 2, "%s", menuText);
 
-
-	// Restart Button
-	// TODO remove duplicate code
-	Rect restartButtonRect = Rect {
-		.x = width / 2 - 75,
-		.y = height / 2 + 25,
-		.width = 150,
-		.height = 50
-	};
-
-	bool hoveringRestartButton = GRRLIB_PtInRect(restartButtonRect.x, restartButtonRect.y, restartButtonRect.width, restartButtonRect.height, mouseX, mouseY);
-	int restartButtonColor = hoveringRestartButton ? GRRLIB_WHITE : GRRLIB_ORANGE;
-	int restartTextColor = hoveringRestartButton ? GRRLIB_BLACK : GRRLIB_BLACK;
-	GRRLIB_Rectangle(restartButtonRect.x, restartButtonRect.y, restartButtonRect.width, restartButtonRect.height, restartButtonColor, true);
-	GRRLIB_Printf(width / 2 - 55, height / 2 + 45, fontTexture, restartTextColor, 1, "RESTART");
-
-	// Detect button click for Restart
-	if (mousePressed && hoveringRestartButton) {
-	  	resetGame();
-		MP3Player_Stop();
-	}
+	showAndCheckRestartButton();
 }
 
 
@@ -321,28 +325,9 @@ void showGameWon()
 	const char *menuText = "YOU WON!";
 	int textX = width / 2; // Breedte van het scherm / 2
 	int textY = 100;	 // Y-positie van de tekst
-	GRRLIB_Printf(textX - (strlen(menuText) * 16), textY, fontTexture, GRRLIB_LIME, 2, "%s", menuText);
+	GRRLIB_Printf(textX - (strlen(menuText) * 16), textY, fontTexture, LIME, 2, "%s", menuText);
 	
-
-	// Restart Button: 
-	// TODO remove duplicate code
-	Rect restartButtonRect = Rect {
-		.x = width / 2 - 75,
-		.y = height / 2 + 25,
-		.width = 150,
-		.height = 50
-	};
-
-	bool hoveringRestartButton = GRRLIB_PtInRect(restartButtonRect.x, restartButtonRect.y, restartButtonRect.width, restartButtonRect.height, mouseX, mouseY);
-	int restartButtonColor = hoveringRestartButton ? GRRLIB_WHITE : GRRLIB_ORANGE;
-	int restartTextColor = hoveringRestartButton ? GRRLIB_BLACK : GRRLIB_BLACK;
-	GRRLIB_Rectangle(restartButtonRect.x, restartButtonRect.y, restartButtonRect.width, restartButtonRect.height, restartButtonColor, true);
-	GRRLIB_Printf(width / 2 - 55, height / 2 + 45, fontTexture, restartTextColor, 1, "RESTART");
-
-	// Detect button click for Restart
-	if (mousePressed && hoveringRestartButton) {
-	  	resetGame();
-	}
+	showAndCheckRestartButton();
 }
 
 void playGame()
@@ -351,10 +336,10 @@ void playGame()
 	drawPath();
 	
 	// Green start block
-	GRRLIB_Rectangle(100, 300, 50, 100, GRRLIB_LIME, true);
+	GRRLIB_Rectangle(100, 300, 50, 100, LIME, true);
 
 	// Blue end block
-	GRRLIB_Rectangle(500, 300, 50, 100, GRRLIB_BLUE, true);
+	GRRLIB_Rectangle(500, 300, 50, 100, BLUE, true);
 
 	// Move stick if picked up
 	if (stickPickedUp && shiftPressed && !gameOver) {
@@ -363,7 +348,7 @@ void playGame()
 	}
 
 	// The circle buzzer
-	GRRLIB_Circle(stickX, stickY, 25, GRRLIB_TRANSPARENT_WHITE, true);
+	GRRLIB_Circle(stickX, stickY, 25, TRANSPARENT_WHITE, true);
 
 	// Check if the stick is picked up
 	if (!stickPickedUp && dist(stickX, stickY, mouseX, mouseY) < 20) {
@@ -436,7 +421,7 @@ int main()
 		shiftPressed = buttonsHeld & WPAD_BUTTON_B;
 
 		// Clear the screen with black
-		GRRLIB_FillScreen(GRRLIB_BLACK);
+		GRRLIB_FillScreen(BLACK);
 
 		// If in main menu, show the Start button
 		if (inMainMenu)
@@ -468,7 +453,7 @@ int main()
 		}
 
 		// Draw cursor!
-		GRRLIB_Circle(mouseX, mouseY, 25, GRRLIB_WHITE, true);
+		GRRLIB_Circle(mouseX, mouseY, 25, WHITE, true);
 
 		GRRLIB_Render();
 	}
