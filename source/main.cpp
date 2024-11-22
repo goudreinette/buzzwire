@@ -7,6 +7,7 @@
 #include <asndlib.h>
 #include <mp3player.h>
 #include <vector>
+#include "random.hpp"
 
 // Font
 #include "BMfont2_png.h"
@@ -76,6 +77,10 @@ bool electrocutePlayed = false; // Flag to check if electrocute sound has been p
 bool chillPlayed = false;       // Flag to check if soundtrack has been started
 int rumbleTimer = 0; 			// Rumble for one second when you lose
 
+
+// Random
+using Random = effolkronium::random_static;
+
 // The path!!!
 const int PATH_COUNT = 3;
 int path[PATH_COUNT][4] = {
@@ -91,48 +96,11 @@ int startX = 125, startY = 100;
 int endX = 525, endY = 100;
 
 
-
+// math helpers -------------------------------------
 int constrain(int val, int min, int max) {
 	return std::max(std::min(val, max), min);
 }
 
-std::vector<PathLine> generateRandomPath() 
-{
-	auto points = std::vector<PathLine>();
-	
-	// Number of points you want between start and end
-	int numPoints = 6;
-	
-	// Calculate equal spacing between startX and endX
-	int segmentWidth = (endX - startX) / (numPoints + 1);  // Total space divided by number of points
-	
-	int prevX = startX;
-	int prevY = startY;
-
-	// Generate points with equal distance between them
-	for (int i = 0; i < numPoints; i++) {
-		int x = prevX + segmentWidth;  // Calculate the next X position, evenly spaced
-		int y = 150 + random() % 100;  // Randomize Y position between 150 and 250
-		
-		// Ensure the points are spaced out evenly
-		x = constrain(x, startX + 10, endX - 10);  // Constrain to avoid points on edges
-		y = constrain(y, 0, height);  // Constrain Y to canvas height
-		
-		PathLine newPoint = PathLine { .x1 = prevX, .y1 = prevY, .x2 = x, .y2 = y};
-		points.push_back(newPoint);
-		
-		prevX = x;  // Update the previous x for the next iteration
-		prevY = y;
-	}
-
-	return points;
-}
-
-void drawPathPoints() {
-	for (PathLine p : pathLines) {
-		GRRLIB_Line(p.x1, p.y1, p.x2, p.y2, GRRLIB_SILVER);
-	}
-}
 
 
 bool pointInRectangle(int px, int py, int x1, int y1, int x2, int y2)
@@ -155,25 +123,21 @@ float distanceToLine(int px, int py, int x1, int y1, int x2, int y2)
 	float len_sq = C * C + D * D;
 	float param = -1;
 
-	if (len_sq != 0)
-	{
+	if (len_sq != 0) {
 		param = dot / len_sq;
 	}
 
 	float xx, yy;
 
-	if (param < 0)
-	{
+	if (param < 0) {
 		xx = x1;
 		yy = y1;
 	}
-	else if (param > 1)
-	{
+	else if (param > 1) {
 		xx = x2;
 		yy = y2;
 	}
-	else
-	{
+	else {
 		xx = x1 + param * C;
 		yy = y1 + param * D;
 	}
@@ -183,6 +147,49 @@ float distanceToLine(int px, int py, int x1, int y1, int x2, int y2)
 
 	return sqrt(dx * dx + dy * dy);
 }
+
+
+// the path -------------------------------------
+
+std::vector<PathLine> generateRandomPath() 
+{
+	auto points = std::vector<PathLine>();
+	
+	// Number of points you want between start and end
+	int numPoints = 6;
+	
+	// Calculate equal spacing between startX and endX
+	int segmentWidth = (endX - startX) / (numPoints + 1);  // Total space divided by number of points
+	
+	int prevX = startX;
+	int prevY = startY;
+
+	// Generate points with equal distance between them
+	for (int i = 0; i < numPoints; i++) {
+		int x = prevX + segmentWidth;  // Calculate the next X position, evenly spaced
+		int y = Random::get(150, 250);  // Randomize Y position between 150 and 250
+		
+		// Ensure the points are spaced out evenly
+		x = constrain(x, startX + 10, endX - 10);  // Constrain to avoid points on edges
+		y = constrain(y, 0, height);  // Constrain Y to canvas height
+		
+		PathLine newPoint = PathLine { .x1 = prevX, .y1 = prevY, .x2 = x, .y2 = y};
+		points.push_back(newPoint);
+		
+		prevX = x;  // Update the previous x for the next iteration
+		prevY = y;
+	}
+
+	return points;
+}
+
+void drawPathPoints() {
+	for (PathLine p : pathLines) {
+		GRRLIB_Line(p.x1, p.y1, p.x2, p.y2, GRRLIB_SILVER);
+	}
+}
+
+
 
 bool isOnPath(int x, int y)
 {
@@ -196,6 +203,8 @@ bool isOnPath(int x, int y)
 	return false;
 }
 
+
+// game logic -------------------------------------
 void checkGameOver()
 {
 	if (stickPickedUp && !isOnPath(stickX, stickY))
@@ -233,14 +242,14 @@ void showMainMenu()
 
 
 	const char *menuText = "MAIN MENU";
-	int textX = 640 / 2; // Breedte van het scherm / 2
+	int textX = width / 2; // Breedte van het scherm / 2
 	int textY = 100;	 // Y-positie van de tekst
 	GRRLIB_Printf(textX - (strlen(menuText) * 16), textY, fontTexture, GRRLIB_WHITE, 2, "%s", menuText);
 
 	// Start Button
 	Rect startButtonRect = Rect {
-		.x = 640 / 2 - 75,
-		.y = 480 / 2 - 25,
+		.x = width / 2 - 75,
+		.y = height / 2 - 25,
 		.width = 150,
 		.height = 50
 	};
@@ -285,7 +294,7 @@ void showGameOver()
 
 	// Game Over text
 	const char *menuText = "GAME OVER";
-	int textX = 640 / 2; // Breedte van het scherm / 2
+	int textX = width / 2; // Breedte van het scherm / 2
 	int textY = 100;	 // Y-positie van de tekst
 	GRRLIB_Printf(textX - (strlen(menuText) * 16), textY, fontTexture, GRRLIB_RED, 2, "%s", menuText);
 
@@ -318,7 +327,7 @@ void showGameOver()
 void showGameWon()
 {
 	const char *menuText = "YOU WON!";
-	int textX = 640 / 2; // Breedte van het scherm / 2
+	int textX = width / 2; // Breedte van het scherm / 2
 	int textY = 100;	 // Y-positie van de tekst
 	GRRLIB_Printf(textX - (strlen(menuText) * 16), textY, fontTexture, GRRLIB_LIME, 2, "%s", menuText);
 	
