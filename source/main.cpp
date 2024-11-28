@@ -41,6 +41,13 @@ enum Colors {
 	SILVER = 0xC0C0C0FF
 };
 
+// Timer
+int startTime = time(NULL);
+
+int currentTime() {
+	return time(NULL) - startTime;
+}
+
 // Font
 GRRLIB_texImg *fontTexture;
 
@@ -401,6 +408,8 @@ int main()
 		// Rumble!
 		// printf("rumbleTimer: %i", rumbleTimer);
 		// SYS_Report("rumbleTimer: %i\r", rumbleTimer);
+		  
+		SYS_Report("timer: %i\r", currentTime());	
 		if (rumbleTimer > 0) {
 			WPAD_Rumble(0, 1);
 			rumbleTimer--;

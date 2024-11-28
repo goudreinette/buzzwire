@@ -1,0 +1,27 @@
+{
+    "env": {
+        
+    },
+
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/opt/devkitpro/devkitPPC/include/**",
+                "/opt/devkitpro/libogc/include/**",
+                "/opt/devkitpro/GRRLIB/GRRLIB/**"
+            ],
+            "defines": [
+                "ARM9"
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++20",
+            "compilerPath": "/opt/devkitpro/devkitPPC/bin/powerpc-eabi-gcc",
+            "configurationProvider": "ms-vscode.makefile-tools"
+        }
+    ],
+
+
+    "version": 4
+}
