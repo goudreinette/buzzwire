@@ -16,6 +16,9 @@
 // Images
 #include "skeleton_jpg.h"
 
+#include "electrocuted1_jpg.h"
+#include "electrocuted10_jpg.h"
+
 // Sounds
 #include "chill_mp3.h"
 #include "electrocute_mp3.h"
@@ -53,6 +56,7 @@ GRRLIB_texImg *fontTexture;
 
 // Images
 GRRLIB_texImg *skeleton_img;
+GRRLIB_texImg * electrocutedImages[2];
 
 // WiiMote
 ir_t ir1; // infrared
@@ -226,6 +230,30 @@ void resetGame()
 	rumbleTimer = 0;
 }
 
+// Electrocuted animation 
+void loadElectrocutedAnimation()
+{
+	electrocutedImages[0] = GRRLIB_LoadTexture(electrocuted1_jpg);
+	electrocutedImages[1] = GRRLIB_LoadTexture(electrocuted10_jpg);
+	// electrocutedImages[2] = GRRLIB_LoadTexture(electrocuted3_jpg);
+	// electrocutedImages[3] = GRRLIB_LoadTexture(electrocuted4_jpg);
+	// electrocutedImages[4] = GRRLIB_LoadTexture(electrocuted5_jpg);
+	// electrocutedImages[5] = GRRLIB_LoadTexture(electrocuted6_jpg);
+	// electrocutedImages[6] = GRRLIB_LoadTexture(electrocuted7_jpg);
+	// electrocutedImages[7] = GRRLIB_LoadTexture(electrocuted8_jpg);
+	// electrocutedImages[8] = GRRLIB_LoadTexture(electrocuted9_jpg);
+	// electrocutedImages[9] = GRRLIB_LoadTexture(electrocuted10_jpg);
+	// electrocutedImages[10] = GRRLIB_LoadTexture(electrocuted11_jpg);
+	// electrocutedImages[11] = GRRLIB_LoadTexture(electrocuted12_jpg);
+}
+
+int electrocutedFrame = 0;
+void showElectrocutedAnimation() 
+{
+	GRRLIB_DrawImg(170, 130, electrocutedImages[electrocutedFrame / 4 % 2], 0, 1.5, 1.5, TRANSPARENT_WHITE);  // Draw a jpeg
+	electrocutedFrame++;
+}
+
 void showMainMenu()
 {
 	if (!chillPlayed) {
@@ -254,6 +282,10 @@ void showMainMenu()
 	GRRLIB_Rectangle(startButtonRect.x, startButtonRect.y, startButtonRect.width, startButtonRect.height, startButtonColor, true);
 	GRRLIB_Printf(width / 2 - 36, height / 2 - 6, fontTexture, startTextColor, 1, "START");
 	
+
+	// showElectrocutedAnimation();
+
+
 	if (hoveringStartButton) {
 		rumbleTimer = 1;
 	}
@@ -277,7 +309,7 @@ void showAndCheckRestartButton()
 {
 	Rect restartButtonRect = Rect {
 		.x = width / 2 - 75,
-		.y = height / 2 + 25,
+		.y = height / 2 + 80,
 		.width = 150,
 		.height = 50
 	};
@@ -286,7 +318,7 @@ void showAndCheckRestartButton()
 	int restartButtonColor = hoveringRestartButton ? WHITE : ORANGE;
 	int restartTextColor = BLACK;
 	GRRLIB_Rectangle(restartButtonRect.x, restartButtonRect.y, restartButtonRect.width, restartButtonRect.height, restartButtonColor, true);
-	GRRLIB_Printf(width / 2 - 55, height / 2 + 45, fontTexture, restartTextColor, 1, "RESTART");
+	GRRLIB_Printf(width / 2 - 55, height / 2 + 100, fontTexture, restartTextColor, 1, "RESTART");
 
 	// Detect button click for Restart
 	if (mousePressed && hoveringRestartButton) {
@@ -307,7 +339,8 @@ void showGameOver()
 	// Scale the skeleton image to 60%
 	float scaleFactor = 0.6;
 	// Skeleton, draw scaled in the center, with transparency 
-	GRRLIB_DrawImg(80, 50, skeleton_img, 0, scaleFactor, scaleFactor, TRANSPARENT_WHITE);  // Draw a jpeg
+	// GRRLIB_DrawImg(80, 50, skeleton_img, 0, scaleFactor, scaleFactor, TRANSPARENT_WHITE);  // Draw a jpeg
+	showElectrocutedAnimation();
 
 	// Game Over text
 	const char *menuText = "GAME OVER";
@@ -374,6 +407,8 @@ void playGame()
 	}
 }
 
+
+
 int main()
 {
 	// Initialize GRRLIB and WiiMote
@@ -389,8 +424,9 @@ int main()
 	fontTexture = GRRLIB_LoadTexture(BMfont4_png);
 	GRRLIB_InitTileSet(fontTexture, 16, 16, 32);
 
-	// Load image
+	// Load images
 	skeleton_img = GRRLIB_LoadTexture(skeleton_jpg);
+	loadElectrocutedAnimation();
 
 	// Initialize MP3 player and load sounds
 	ASND_Init();
@@ -398,6 +434,8 @@ int main()
 
 	while (true)
 	{
+		GRRLIB_DrawImg(80, 50, electrocutedImages[0], 0, .5, .5, TRANSPARENT_WHITE);  // Draw a jpeg
+
 		// Read input
 		WPAD_SetVRes(0, width, height);
 		WPAD_ScanPads();
