@@ -23,6 +23,10 @@
 #include "chill_mp3.h"
 #include "electrocute_mp3.h"
 
+#include <iostream>
+#include <format>
+#include <string>
+
 
 // Random
 using Random = effolkronium::random_static;
@@ -44,11 +48,21 @@ enum Colors {
 	SILVER = 0xC0C0C0FF
 };
 
-// Timer
-int startTime = time(NULL);
 
+// Level and highscore 
+int level = 1;
+int score = 0;
+int highscore = 0;
+
+// Timer
+int levelTimeLimit = 10;
+int startTime = time(NULL);
 int currentTime() {
 	return time(NULL) - startTime;
+}
+
+int remainingTime() {
+	return std::max(0, levelTimeLimit - currentTime());  // Zorg dat tijd niet negatief wordt
 }
 
 // Font
@@ -217,6 +231,7 @@ void checkGameOver()
 
 void resetGame()
 {
+	startTime = time(NULL);
 	gameStarted = false;
 	gameOver = false;
 	gameWon = false;
@@ -235,16 +250,6 @@ void loadElectrocutedAnimation()
 {
 	electrocutedImages[0] = GRRLIB_LoadTexture(electrocuted1_jpg);
 	electrocutedImages[1] = GRRLIB_LoadTexture(electrocuted10_jpg);
-	// electrocutedImages[2] = GRRLIB_LoadTexture(electrocuted3_jpg);
-	// electrocutedImages[3] = GRRLIB_LoadTexture(electrocuted4_jpg);
-	// electrocutedImages[4] = GRRLIB_LoadTexture(electrocuted5_jpg);
-	// electrocutedImages[5] = GRRLIB_LoadTexture(electrocuted6_jpg);
-	// electrocutedImages[6] = GRRLIB_LoadTexture(electrocuted7_jpg);
-	// electrocutedImages[7] = GRRLIB_LoadTexture(electrocuted8_jpg);
-	// electrocutedImages[8] = GRRLIB_LoadTexture(electrocuted9_jpg);
-	// electrocutedImages[9] = GRRLIB_LoadTexture(electrocuted10_jpg);
-	// electrocutedImages[10] = GRRLIB_LoadTexture(electrocuted11_jpg);
-	// electrocutedImages[11] = GRRLIB_LoadTexture(electrocuted12_jpg);
 }
 
 int electrocutedFrame = 0;
@@ -263,10 +268,13 @@ void showMainMenu()
 		chillPlayed = true;
 	}
 
-	const char *menuText = "MAIN MENU";
-	int textX = width / 2; // Breedte van het scherm / 2
-	int textY = 100;	 // Y-positie van de tekst
-	GRRLIB_Printf(textX - (strlen(menuText) * 16), textY, fontTexture, WHITE, 2, "%s", menuText);
+	// Show menu text
+	const char *menuText = "BUZZWIRE";
+	GRRLIB_Printf(width / 2 - (strlen(menuText) * 16), 100, fontTexture, WHITE, 2, "%s", menuText);
+
+	// Show highscore text 
+	std::string highscoreText = std::format("HIGHSCORE: {}", highscore);
+	GRRLIB_Printf(width / 2 - (strlen(highscoreText.c_str()) * 8), 140, fontTexture, WHITE, 1, highscoreText.c_str());
 
 	// Start Button
 	Rect startButtonRect = Rect {
@@ -322,6 +330,7 @@ void showAndCheckRestartButton()
 
 	// Detect button click for Restart
 	if (mousePressed && hoveringRestartButton) {
+		level = 1;
 	  	resetGame();
 	}
 }
@@ -337,16 +346,11 @@ void showGameOver()
 	}
 
 	// Scale the skeleton image to 60%
-	float scaleFactor = 0.6;
-	// Skeleton, draw scaled in the center, with transparency 
-	// GRRLIB_DrawImg(80, 50, skeleton_img, 0, scaleFactor, scaleFactor, TRANSPARENT_WHITE);  // Draw a jpeg
 	showElectrocutedAnimation();
 
 	// Game Over text
 	const char *menuText = "GAME OVER";
-	int textX = width / 2; // Breedte van het scherm / 2
-	int textY = 100;	 // Y-positie van de tekst
-	GRRLIB_Printf(textX - (strlen(menuText) * 16), textY, fontTexture, RED, 2, "%s", menuText);
+	GRRLIB_Printf(width / 2 - (strlen(menuText) * 16), 100, fontTexture, RED, 2, "%s", menuText);
 
 	showAndCheckRestartButton();
 }
@@ -364,10 +368,42 @@ void showGameWon()
 	showAndCheckRestartButton();
 }
 
+
+void nextLevel()
+{
+	pathLines = generateRandomPath();
+	score += remainingTime();
+	startTime = time(NULL);
+
+
+// Update highscore als de nieuwe score beter is
+	if (score > highscore) {
+		highscore = score;
+	}
+
+	level++;
+	resetGame();
+	inMainMenu = false;
+	gameStarted = true;
+}
+
 void playGame()
 {
 	// Draw path
 	drawPath();
+
+	// Draw level, score and time left
+	std::string levelText = std::format("LEVEL {}", level);
+	GRRLIB_Printf(width / 2 - (strlen(levelText.c_str()) * 16), 30, fontTexture, WHITE, 2, levelText.c_str());
+
+	// Score
+	std::string scoreText = std::format("SCORE: {}", score);
+	GRRLIB_Printf(width / 2 - (strlen(scoreText.c_str()) * 8), 350, fontTexture, WHITE, 1, scoreText.c_str());
+
+	// Time left 
+	std::string timeLeftText = std::format("{}", remainingTime());
+	// SYS_Report("time left: %i\r", timeLeftText);	
+	GRRLIB_Printf(width / 2 - (strlen(timeLeftText.c_str()) * 8), 400, fontTexture, remainingTime() < 10 ? RED : WHITE, 1, timeLeftText.c_str());
 	
 	// Green start block
 	GRRLIB_Rectangle(100, 300, 50, 100, LIME, true);
@@ -391,17 +427,25 @@ void playGame()
 
 	// Check if buzzer is hit (end block reached)
 	if (stickPickedUp && (stickX > 500 && stickY > 300)) {
-	  gameWon = true;
-	  gameStarted = false;
+  		gameWon = true;
+	  	gameStarted = false;
+		nextLevel();
 	}
 
 	// Check if the game is over (off path)
+	if (remainingTime() <= 0) {
+		buzzed = true;
+		gameOver = true;
+	}
+
+
 	if (!gameWon) {
 	  checkGameOver();  // Only check game over if the game hasn't been won yet
 	}
 
 	// Display game over message if off path, and rumble
 	if (gameOver) {
+		score = 0;
 		rumbleTimer = 60;
 	  	gameStarted = false;
 	}
@@ -434,8 +478,6 @@ int main()
 
 	while (true)
 	{
-		GRRLIB_DrawImg(80, 50, electrocutedImages[0], 0, .5, .5, TRANSPARENT_WHITE);  // Draw a jpeg
-
 		// Read input
 		WPAD_SetVRes(0, width, height);
 		WPAD_ScanPads();
@@ -447,7 +489,7 @@ int main()
 		// printf("rumbleTimer: %i", rumbleTimer);
 		// SYS_Report("rumbleTimer: %i\r", rumbleTimer);
 		  
-		SYS_Report("timer: %i\r", currentTime());	
+		// SYS_Report("timer: %i\r", currentTime());	
 		if (rumbleTimer > 0) {
 			WPAD_Rumble(0, 1);
 			rumbleTimer--;
@@ -483,10 +525,10 @@ int main()
 		}
 
 		// If the game is won, show the Win screen
-		if (gameWon)
-		{
-			showGameWon();
-		}
+		// if (gameWon)
+		// {
+		// 	showGameWon();
+		// }
 
 		if (buttonsDown & WPAD_BUTTON_HOME)
 		{
