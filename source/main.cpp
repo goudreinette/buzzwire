@@ -163,31 +163,29 @@ float distanceToLine(int px, int py, int x1, int y1, int x2, int y2)
 }
 
 // the path!! -------------------------------------
-std::vector<PathLine> pathLines;
+// std::vector<PathLine> pathLines;
+#define NUM_POINTS 6
+PathLine pathLines[NUM_POINTS + 1];
+
 
 int startX = 125, startY = 300;
 int endX = 525, endY = 300;
 
-std::vector<PathLine> generateRandomPath()
-{
-	std::vector<PathLine> points = std::vector<PathLine>();
 
-	// Number of points you want between start and end
-	int numPoints = 2;
-
-	points.reserve(numPoints);
-
+void generateRandomPath()
+{	
 	// Calculate equal spacing between startX and endX
-	int segmentWidth = (endX - startX) / (numPoints + 1); // Total space divided by number of points
+	int segmentWidth = (endX - startX) / (NUM_POINTS + 1); // Total space divided by number of points
 
 	int prevX = startX;
 	int prevY = startY;
 
 	// Generate points with equal distance between them
-	for (int i = 0; i < numPoints; i++)
+	for (int i = 0; i < NUM_POINTS; i++)
 	{
 		int x = prevX + segmentWidth; // Calculate the next X position, evenly spaced
-		int y = 50; //Random::get(50, 300); // Randomize Y position between 150 and 250
+		// int y = 50; //Random::get(50, 300); // Randomize Y position between 150 and 250
+		int y = Random::get(50, 300); // Randomize Y position between 150 and 250
 
 		// Ensure the points are spaced out evenly
 		x = constrain(x, startX + 10, endX - 10); // Constrain to avoid points on edges
@@ -195,16 +193,15 @@ std::vector<PathLine> generateRandomPath()
 
 		// FIXME something goes wrong here
 		PathLine newPoint = PathLine {.x1 = prevX, .y1 = prevY, .x2 = x, .y2 = y};
-		points.push_back(newPoint);
+		pathLines[i] = newPoint;
 
 		prevX = x; // Update the previous x for the next iteration
 		prevY = y;
 	}
 
 	PathLine endPoint = PathLine{.x1 = prevX, .y1 = prevY, .x2 = endX, .y2 = endY};
-	points.push_back(endPoint);
 
-	return points;
+	pathLines[NUM_POINTS - 1] = endPoint;
 }
 
 void drawPath()
@@ -310,7 +307,7 @@ void showMainMenu()
 	if (mousePressed && hoveringStartButton)
 	{
 		// Generate a path!
-		pathLines = generateRandomPath();
+		generateRandomPath();
 		// SYS_Report("points: %i\r", pathLines.size()); // Log to check if generation went ok
 
 		inMainMenu = false;
@@ -376,7 +373,7 @@ void showGameWon()
 
 void nextLevel()
 {
-	pathLines = generateRandomPath();
+	generateRandomPath();
 	score += remainingTime();
 	startTime = time(NULL);
 
