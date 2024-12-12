@@ -201,8 +201,9 @@ void generateRandomPath()
 
 	PathLine endPoint = PathLine{.x1 = prevX, .y1 = prevY, .x2 = endX, .y2 = endY};
 
-	pathLines[NUM_POINTS - 1] = endPoint;
+	pathLines[NUM_POINTS] = endPoint;
 }
+
 
 void drawPath()
 {
