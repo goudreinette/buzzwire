@@ -308,7 +308,7 @@ void showMainMenu()
 	{
 		// Generate a path!
 		pathLines = generateRandomPath();
-		SYS_Report("points: %i\r", pathLines.size()); // Log to check if generation went ok
+		// SYS_Report("points: %i\r", pathLines.size()); // Log to check if generation went ok
 
 		inMainMenu = false;
 		gameStarted = true;
