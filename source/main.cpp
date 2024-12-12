@@ -170,10 +170,12 @@ int endX = 525, endY = 300;
 
 std::vector<PathLine> generateRandomPath()
 {
-	auto points = std::vector<PathLine>();
+	std::vector<PathLine> points = std::vector<PathLine>();
 
 	// Number of points you want between start and end
-	int numPoints = 6;
+	int numPoints = 2;
+
+	points.reserve(numPoints);
 
 	// Calculate equal spacing between startX and endX
 	int segmentWidth = (endX - startX) / (numPoints + 1); // Total space divided by number of points
@@ -185,13 +187,14 @@ std::vector<PathLine> generateRandomPath()
 	for (int i = 0; i < numPoints; i++)
 	{
 		int x = prevX + segmentWidth; // Calculate the next X position, evenly spaced
-		int y = Random::get(50, 300); // Randomize Y position between 150 and 250
+		int y = 50; //Random::get(50, 300); // Randomize Y position between 150 and 250
 
 		// Ensure the points are spaced out evenly
 		x = constrain(x, startX + 10, endX - 10); // Constrain to avoid points on edges
 		y = constrain(y, 0, height);			  // Constrain Y to canvas height
 
-		PathLine newPoint = PathLine{.x1 = prevX, .y1 = prevY, .x2 = x, .y2 = y};
+		// FIXME something goes wrong here
+		PathLine newPoint = PathLine {.x1 = prevX, .y1 = prevY, .x2 = x, .y2 = y};
 		points.push_back(newPoint);
 
 		prevX = x; // Update the previous x for the next iteration
@@ -532,11 +535,6 @@ int main()
 			showGameOver();
 		}
 
-		// If the game is won, show the Win screen
-		// if (gameWon)
-		// {
-		// 	showGameWon();
-		// }
 
 		if (buttonsDown & WPAD_BUTTON_HOME)
 		{
