@@ -163,7 +163,6 @@ float distanceToLine(int px, int py, int x1, int y1, int x2, int y2)
 }
 
 // the path!! -------------------------------------
-// std::vector<PathLine> pathLines;
 #define NUM_POINTS 6
 PathLine pathLines[NUM_POINTS + 1];
 
